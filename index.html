@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureCode AI Dashboard</title>
+    <style>
+        body {
+            background-color: #0E0B16;
+            color: #ffffff;
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: #130E21;
+            border-bottom: 1px solid rgba(126, 34, 206, 0.3);
+        }
+        .logo-area { display: flex; align-items: center; gap: 0.75rem; font-weight: bold; font-size: 1.25rem; color: #c084fc; }
+        .badge { background: rgba(88, 28, 135, 0.4); border: 1px solid rgba(147, 51, 234, 0.5); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; color: #e9d5ff; }
+        .hero { text-align: center; padding: 3rem 1rem; }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; background: linear-gradient(to right, #d8b4fe, #c084fc, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { color: #9ca3af; max-width: 600px; margin: 0 auto; font-size: 0.95rem; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 3rem 1rem; width: 100%; box-sizing: border-box; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .card { background-color: #171227; border: 1px solid rgba(126, 34, 206, 0.3); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; }
+        .card h2 { font-size: 1.1rem; margin-top: 0; color: #e9d5ff; margin-bottom: 1rem; }
+        textarea { width: 100%; height: 300px; background-color: #0F0A1A; border: 1px solid rgba(147, 51, 234, 0.4); border-radius: 0.75rem; padding: 1rem; color: #f3e8ff; font-family: monospace; font-size: 0.85rem; resize: none; box-sizing: border-box; outline: none; }
+        textarea:focus { border-color: #a855f7; }
+        button { margin-top: 1.5rem; width: 100%; padding: 0.75rem; background: linear-gradient(to right, #9333ea, #4f46e5); color: white; font-weight: bold; border: none; border-radius: 0.75rem; cursor: pointer; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .output-box { min-height: 350px; max-height: 500px; overflow-y: auto; }
+        .placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #6b7280; text-align: center; gap: 0.5rem; font-size: 0.9rem; }
+        .spinner { border: 3px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #c084fc; animation: spin 1s linear infinite; margin: 2rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .alert { padding: 1rem; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+        .alert-success { background-color: rgba(6, 78, 59, 0.4); border: 1px solid #047857; color: #6ee7b7; }
+        .alert-error { background-color: rgba(136, 19, 55, 0.4); border: 1px solid #be123c; color: #fca5a5; }
+        .vuln-card { background-color: #100C1D; border: 1px solid rgba(126, 34, 206, 0.2); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
+        .vuln-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .vuln-title { font-weight: bold; font-size: 0.9rem; color: #ffffff; }
+        .severity-badge { background-color: rgba(159, 18, 57, 0.5); border: 1px solid rgba(225, 29, 72, 0.5); color: #fecdd3; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .vuln-desc { font-size: 0.8rem; color: #d1d5db; margin-bottom: 0.75rem; }
+        .vuln-fix { font-size: 0.75rem; background-color: rgba(88, 28, 135, 0.3); border: 1px solid rgba(147, 51, 234, 0.2); padding: 0.5rem; border-radius: 0.5rem; color: #e9d5ff; }
+        pre { background-color: #0F0A1A; border: 1px solid rgba(147, 51, 234, 0.3); padding: 1rem; border-radius: 0.75rem; font-family: monospace; font-size: 0.75rem; color: #34d399; overflow-x: auto; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo-area">
+            <span>🛡️</span> SecureCode AI
+        </div>
+        <div class="badge">Local Engine: Llama 3.2</div>
+    </nav>
+
+    <div class="hero">
+        <h1>Autonomous Code Vulnerability Scanner</h1>
+        <p>Analyze your source code instantly using a local AI security engineer. Detect vulnerabilities and receive secure patches.</p>
+    </div>
+
+    <div class="container">
+        <!-- Left: Input -->
+        <div class="card">
+            <h2>📝 Source Code Snippet</h2>
+            <textarea id="codeInput">def get_user_data(user_id):
+    secret_api_key = "AKIAIOSFODNN7EXAMPLE"
+    query = "SELECT * FROM users WHERE id = " + user_id
+    db.execute(query)
+    return db.fetchall()</textarea>
+            <button id="scanBtn" onclick="runScan()">🚀 Run Security Audit</button>
+        </div>
+
+        <!-- Right: Output -->
+        <div class="card output-box">
+            <h2>📊 Security Audit Report</h2>
+            
+            <div id="initialState" class="placeholder">
+                <span style="font-size: 2rem;">🛡️</span>
+                <span>Paste your code and click Run Security Audit.</span>
+            </div>
+            
+            <div id="loadingState" style="display: none;">
+                <div class="spinner"></div>
+                <p style="text-align: center; color: #c084fc; font-size: 0.85rem;">Running local AI inference...</p>
+            </div>
+            
+            <div id="errorState" class="alert alert-error" style="display: none;"></div>
+            
+            <div id="reportState" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        async function runScan() {
+            const code = document.getElementById('codeInput').value;
+            const btn = document.getElementById('scanBtn');
+            const initial = document.getElementById('initialState');
+            const loading = document.getElementById('loadingState');
+            const error = document.getElementById('errorState');
+            const report = document.getElementById('reportState');
+
+            btn.disabled = true;
+            btn.innerText = 'Analyzing with local AI...';
+            initial.style.display = 'none';
+            error.style.display = 'none';
+            report.style.display = 'none';
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                });
+                
+                if (!response.ok) throw new Error('Failed to connect to backend. Ensure FastAPI is running.');
+                const data = await response.json();
+                
+                console.log("API Response:", data);
+
+                let html = '';
+                
+                const vulnerabilities = data.vulnerabilities || data.issues || data.findings || [];
+                const isSecure = (data.is_secure === true || data.is_secure === "true") && vulnerabilities.length === 0;
+
+                if (isSecure) {
+                    html += `<div class="alert alert-success"><span>✅</span><span>Code is Secure! No major vulnerabilities found.</span></div>`;
+                } else {
+                    html += `<div class="alert alert-error"><span>🚨</span><span>Security Alert: Vulnerabilities Detected!</span></div>`;
+                }
+
+                if (vulnerabilities.length > 0) {
+                    html += `<div style="margin-top: 1rem;">`;
+                    vulnerabilities.forEach(vuln => {
+                        const title = vuln.issue_type || vuln.issue || vuln.type || vuln.name || "Vulnerability Found";
+                        const severity = vuln.severity || vuln.level || "HIGH";
+                        const description = vuln.description || vuln.details || vuln.message || "No description provided.";
+                        const fix = vuln.suggested_fix || vuln.fix || vuln.solution || "Review code manually.";
+
+                        html += `
+                        <div class="vuln-card">
+                            <div class="vuln-header">
+                                <span class="vuln-title">${title}</span>
+                                <span class="severity-badge">${severity}</span>
+                            </div>
+                            <div class="vuln-desc">${description}</div>
+                            <div class="vuln-fix">💡 <strong>Fix:</strong> ${fix}</div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                const patchedCode = data.patched_code || data.fixed_code || data.secure_code;
+                if (patchedCode) {
+                    html += `
+                    <div style="margin-top: 1rem;">
+                        <strong style="font-size: 0.85rem; color: #d1d5db;">🛠️ Secure Remediated Code</strong>
+                        <pre><code>${patchedCode.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+                    </div>`;
+                }
+
+                report.innerHTML = html;
+                loading.style.display = 'none';
+                report.style.display = 'block';
+
+            } catch (err) {
+                error.innerText = err.message;
+                loading.style.display = 'none';
+                error.style.display = 'flex';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '🚀 Run Security Audit';
+            }
+        }
+    </script>
+</body>
+</html>
